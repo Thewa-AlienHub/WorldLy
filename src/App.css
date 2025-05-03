@@ -1,0 +1,61 @@
+/* src/App.css */
+@import "tailwindcss";
+
+
+
+body {
+  background-color: #f5f5f5;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Custom scroll bar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #a0aec0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* Transitions */
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 300ms;
+}
+
+.fade-exit {
+  opacity: 1;
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity 300ms;
+}
+
+/* Form focus styles */
+input:focus, select:focus {
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+}
+
+/* Button hover effect */
+button:hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s;
+}
+
+button:active {
+  transform: translateY(0);
+}
