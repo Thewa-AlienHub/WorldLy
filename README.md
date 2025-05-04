@@ -2,7 +2,7 @@
 
 CountryLens is a modern React application that allows users to explore, search, and discover detailed information about countries around the globe. With features like user authentication, interactive maps, and a favorites list, CountryLens is your go-to app for quick country insights.
 
-![CountryLens Screenshot](./screenshots/homepage.png)
+![CountryLens Screenshot](./public/Homepage.png)
 
 ---
 
