@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Lock } from 'lucide-react';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import OAuth from './OAuth';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Lock } from "lucide-react";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import OAuth from "./OAuth";
 
 const Login = ({ login, showAlert }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -29,12 +29,16 @@ const Login = ({ login, showAlert }) => {
     setErrorMsg(null);
     try {
       const auth = getAuth();
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       if (userCredential.user) {
-        navigate('/');
+        navigate("/");
       }
     } catch (error) {
-      setErrorMsg('Invalid User Credentials');
+      setErrorMsg("Invalid User Credentials");
     } finally {
       setLoading(false);
     }
@@ -47,10 +51,15 @@ const Login = ({ login, showAlert }) => {
           <div className="flex justify-center mb-4">
             <Lock className="h-12 w-12 text-blue-600" />
           </div>
-          <h2 className="text-3xl font-extrabold text-gray-800">Sign in to your account</h2>
+          <h2 className="text-3xl font-extrabold text-gray-800">
+            Sign in to your account
+          </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Don't have an account?{' '}
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
               Sign up
             </Link>
           </p>
@@ -59,7 +68,10 @@ const Login = ({ login, showAlert }) => {
         <div className="bg-white py-8 px-6 shadow-xl rounded-xl">
           <form onSubmit={onSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email address
               </label>
               <input
@@ -74,7 +86,10 @@ const Login = ({ login, showAlert }) => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <input
@@ -93,16 +108,20 @@ const Login = ({ login, showAlert }) => {
                 type="submit"
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-white bg-[#053742] transition font-medium"
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? "Signing in..." : "Sign In"}
               </button>
               <div className="flex items-center before:border-t before:flex-1 before:border-gray-300  after:border-t after:flex-1 after:border-gray-300">
-                <p className="text-center font-semibold mx-4 dark:text-lime-600">OR</p>
+                <p className="text-center font-semibold mx-4 dark:text-gray-700">
+                  OR
+                </p>
               </div>
               <OAuth />
             </div>
           </form>
           {errorMsg && (
-            <p className="mt-4 text-sm text-center text-red-600 font-medium">{errorMsg}</p>
+            <p className="mt-4 text-sm text-center text-red-600 font-medium">
+              {errorMsg}
+            </p>
           )}
         </div>
       </div>
