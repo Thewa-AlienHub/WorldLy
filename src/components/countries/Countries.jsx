@@ -27,6 +27,9 @@ const Countries = ({ showAlert }) => {
         const fetchCountries = async () => {
             try {
                 const res = await fetch('https://restcountries.com/v3.1/all');
+                if (!res) {
+                    throw new Error("Network Error: Response is undefined");
+                }
                 if (!res.ok) throw new Error(`Error: ${res.status}`);
                 const data = await res.json();
 
@@ -42,10 +45,12 @@ const Countries = ({ showAlert }) => {
                 setAvailableLanguages(Array.from(allLanguages).sort());
                 setCountries(data);
                 setFilteredCountries(data);
-                setTimeout(() => setLoading(false), 300);
+                
             } catch (err) {
                 console.error(err);
                 showAlert('Error fetching countries', 'danger');
+                
+            }finally {
                 setTimeout(() => setLoading(false), 300);
             }
         };
