@@ -10,6 +10,7 @@ const CountryDetail = ({ showAlert }) => {
   const [loading, setLoading] = useState(true);
 
   // Color scheme from the welcome page
+  //Changes ara
   const colors = {
     darkTeal: "#053742",
     blue: "#39A2DB",
