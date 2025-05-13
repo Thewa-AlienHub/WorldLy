@@ -47,7 +47,7 @@ const Countries = ({ showAlert }) => {
                 setFilteredCountries(data);
                 
             } catch (err) {
-                console.error(err);
+                // console.error(err);
                 showAlert('Error fetching countries', 'danger');
                 
             }finally {

@@ -118,10 +118,16 @@ describe('Countries Component', () => {
   });
 
   it('should show error message when fetch fails', async () => {
-    global.fetch = jest.fn().mockRejectedValue(new Error('Failed to fetch'));
-
-    render(<Countries showAlert={showAlert} />);
-
-    await waitFor(() => expect(showAlert).toHaveBeenCalledWith('Error fetching countries', 'danger'));
-  });
+  const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {}); 
+ 
+  global.fetch = jest.fn().mockRejectedValue(new Error('Failed to fetch'));
+ 
+  render(<Countries showAlert={showAlert} />);
+ 
+  await waitFor(() =>
+    expect(showAlert).toHaveBeenCalledWith('Error fetching countries', 'danger')
+  );
+ 
+  consoleError.mockRestore(); 
+});
 });
