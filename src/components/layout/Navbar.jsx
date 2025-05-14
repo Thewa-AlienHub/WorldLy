@@ -60,7 +60,7 @@ const Navbar = () => {
                 className="text-[#E8F0F2] hover:text-[#A2DBFA] transition-colors relative flex items-center"
                 title="View Favorites"
               >
-                <Heart className="w-5 h-5 mr-1" />
+                <Heart className="w-5 h-5 mr-1 hover:text-red-500" />
                 {favorites.length > 0 && (
                   <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
                     {favorites.length}

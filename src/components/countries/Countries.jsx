@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useSearchParams } from "react-router-dom";
-import CountryItem from "./CountryItem.jsx";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import SearchBox from "./SearchBox.jsx";
 import FilterOptions from "./FilterOptions.jsx";
 import Spinner from "../layout/Spinner.jsx";
 import ScrollToTopButton from "../layout/ScrollToTopButton.jsx";
 import { AuthContext } from "../../context/AuthContext";
+import { Globe, Users, Landmark, Heart } from "lucide-react";
 
 const Countries = ({ showAlert, showLoginModal }) => {
   const { user, favorites, addFavorite, removeFavorite } =
     useContext(AuthContext);
-  const [searchParams] = useSearchParams();
+  // const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [countries, setCountries] = useState([]);
   const [filteredCountries, setFilteredCountries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,25 +20,21 @@ const Countries = ({ showAlert, showLoginModal }) => {
   const [language, setLanguage] = useState("");
   const [availableLanguages, setAvailableLanguages] = useState([]);
 
+  // Professional color palette
   const colors = {
     darkTeal: "#053742",
     blue: "#39A2DB",
     lightBlue: "#A2DBFA",
     paleBlue: "#E8F0F2",
+    red: "#FF0000",
   };
 
-  useEffect(() => {
-    const initialSearch = searchParams.get("search");
-    if (initialSearch) setSearch(initialSearch);
-  }, [searchParams]);
+
 
   useEffect(() => {
     const fetchCountries = async () => {
       try {
         const res = await fetch("https://restcountries.com/v3.1/all");
-                if (!res) {
-                    throw new Error("Network Error: Response is undefined");
-                }
         if (!res.ok) throw new Error(`Error: ${res.status}`);
         const data = await res.json();
 
@@ -53,12 +50,10 @@ const Countries = ({ showAlert, showLoginModal }) => {
         setAvailableLanguages(Array.from(allLanguages).sort());
         setCountries(data);
         setFilteredCountries(data);
-        
+        setTimeout(() => setLoading(false), 300);
       } catch (err) {
         // console.error(err);
         showAlert("Error fetching countries", "danger");
-                
-            }finally {
         setTimeout(() => setLoading(false), 300);
       }
     };
@@ -94,7 +89,9 @@ const Countries = ({ showAlert, showLoginModal }) => {
     }
   }, [search, region, language, countries, loading]);
 
-  const toggleFavorite = (country) => {
+  const toggleFavorite = (e, country) => {
+    e.stopPropagation(); // Prevent navigation when clicking on the favorite icon
+
     if (!user) {
       showLoginModal();
       return;
@@ -107,61 +104,122 @@ const Countries = ({ showAlert, showLoginModal }) => {
     }
   };
 
+  const navigateToCountry = (country) => {
+    navigate(`/country/${country.cca3}`);
+  };
+
+  // Country card component
+  const CountryCard = ({ country, isFavorite }) => {
+    return (
+      <div
+        className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer group"
+        onClick={() => navigateToCountry(country)}
+      >
+        <div className="relative h-40 overflow-hidden">
+          <img
+            src={country.flags?.svg || country.flags?.png}
+            alt={`Flag of ${country.name.common}`}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <button
+            onClick={(e) => toggleFavorite(e, country)}
+            className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md transition-colors duration-300 hover:bg-gray-100 z-10"
+            aria-label={
+              isFavorite ? "Remove from favorites" : "Add to favorites"
+            }
+          >
+            <Heart
+              className="h-5 w-5"
+              fill={isFavorite ? colors.red : "none"}
+              stroke={isFavorite ? colors.red : colors.darkTeal}
+              strokeWidth={isFavorite ? 0 : 2}
+            />
+          </button>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        </div>
+
+        <div className="p-4">
+          <h3
+            className="text-lg font-semibold mb-2 truncate"
+            style={{ color: colors.darkTeal }}
+          >
+            {country.name.common}
+          </h3>
+
+          <div className="space-y-1">
+            <p className="text-sm text-gray-600 flex items-center gap-2">
+              <Globe className="h-4 w-4 text-[#147eb7]" />
+              <span className="font-medium">Region:</span>
+              <span>{country.region || "N/A"}</span>
+            </p>
+
+            <p className="text-sm text-gray-600 flex items-center gap-2">
+              <Users className="h-4 w-4 text-[#147eb7]" />
+              <span className="font-medium">Population:</span>
+              <span>{country.population?.toLocaleString() || "N/A"}</span>
+            </p>
+
+            {country.capital && (
+              <p className="text-sm text-gray-600 flex items-center gap-2 truncate">
+                <Landmark className="h-4 w-4 text-[#147eb7]" />
+                <span className="font-medium">Capital:</span>
+                <span>{country.capital[0] || "N/A"}</span>
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) return <Spinner />;
 
   return (
-    <>
+    <div
+      style={{ backgroundColor: colors.paleBlue }}
+      className="min-h-screen px-9"
+    >
+      {/* Header Section */}
+      <div className="w-full py-8 px-4 mb-6">
+        <div className="container mx-auto">
+          <h1 className="text-5xl md:text-4xl font-bold text-[#053742]">
+            Explore the World
+          </h1>
+          <p className="text-xl text-gray-500 mt-2">
+            Discover information about countries around the globe
+          </p>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6 relative z-20">
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          {/* Header + Search */}
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <h2
-              className="text-5xl font-bold"
-              style={{ color: colors.darkTeal }}
-            >
-              Explore Countries
-            </h2>
-            <div className="w-full md:w-1/2 lg:w-1/3">
-              <SearchBox search={search} setSearch={setSearch} />
-            </div>
-          </div>
-
-          {/* Filters centered below */}
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-4">
-            <div className="w-full">
-              <FilterOptions
-                region={region}
-                setRegion={setRegion}
-                language={language}
-                setLanguage={setLanguage}
-                availableLanguages={availableLanguages}
-                type="region"
-              />
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="text-left mt-2">
-            <p
-              className="text-md sm:text-base font-semibold"
-              style={{ color: colors.darkTeal }}
-            >
-              <span className="font-semibold">{filteredCountries.length}</span>{" "}
-              countries found
-            </p>
-          </div>
+      <div className="container mx-auto px-4 pb-12 relative z-20">
+        {/* Search and Filters Section */}
+        <div
+          className="bg-white rounded-xl shadow-md p-5 mb-8"
+          style={{ borderLeft: `5px solid ${colors.blue}` }}
+        >
+          {/* Filters */}
+          <FilterOptions
+            region={region}
+            setRegion={setRegion}
+            language={language}
+            setLanguage={setLanguage}
+            availableLanguages={availableLanguages}
+            colors={colors}
+            search={search}
+            setSearch={setSearch}
+          />
         </div>
 
         {filteredCountries.length === 0 ? (
           <div
-            className="bg-white rounded-lg shadow-lg p-10 text-center max-w-2xl mx-auto border-t-4"
-            style={{ borderColor: colors.blue }}
+            className="bg-white rounded-xl shadow-lg p-10 text-center max-w-2xl mx-auto"
+            style={{ borderTop: `4px solid ${colors.blue}` }}
           >
             <div className="mb-6" style={{ color: colors.darkTeal }}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-16 w-16 mx-auto"
+                className="h-20 w-20 mx-auto"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -181,12 +239,12 @@ const Countries = ({ showAlert, showLoginModal }) => {
               </svg>
             </div>
             <h2
-              className="text-2xl font-semibold mb-4"
+              className="text-2xl font-bold mb-4"
               style={{ color: colors.darkTeal }}
             >
               No Countries Found
             </h2>
-            <p className="text-lg text-gray-600 mb-4">
+            <p className="text-lg text-gray-600 mb-6">
               We couldn't find any countries matching your search criteria.
             </p>
             <button
@@ -208,20 +266,19 @@ const Countries = ({ showAlert, showLoginModal }) => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredCountries.map((country) => (
-              <CountryItem
+              <CountryCard
                 key={country.cca3}
                 country={country}
                 isFavorite={favorites.some((fav) => fav.cca3 === country.cca3)}
-                toggleFavorite={() => toggleFavorite(country)}
               />
             ))}
           </div>
         )}
       </div>
-      <ScrollToTopButton />
-    </>
+      <ScrollToTopButton colors={colors} />
+    </div>
   );
 };
 

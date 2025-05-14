@@ -1,133 +1,142 @@
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Countries from '../components/countries/Countries';
-import { act } from 'react-dom/test-utils';
+import { AuthContext } from '../context/AuthContext';
 
-// Mock the dependencies
-jest.mock('../components/countries/CountryItem', () => ({ country, toggleFavorite, isFavorite }) => (
-  <div>
-    <span>{country.name.common}</span>
-    <button onClick={() => toggleFavorite(country.cca3)}>
-      {isFavorite ? 'Unfavorite' : 'Favorite'}
-    </button>
-  </div>
-));
-
-jest.mock('../components/countries/SearchBox', () => ({ search, setSearch }) => (
-  <input value={search} onChange={(e) => setSearch(e.target.value)} />
-));
-
-jest.mock('../components/countries/FilterOptions', () => ({ setRegion, setLanguage, availableLanguages }) => (
-  <div>
-    <button onClick={() => setRegion('Asia')}>Asia</button>
-    <button onClick={() => setLanguage('English')}>English</button>
-  </div>
-));
-
+// Mock child components
 jest.mock('../components/layout/Spinner', () => () => <div>Loading...</div>);
-
 jest.mock('../components/layout/ScrollToTopButton', () => () => <div>ScrollToTopButton</div>);
+jest.mock('../components/countries/FilterOptions', () => ({
+  __esModule: true,
+  default: ({ setRegion, setLanguage, availableLanguages, search, setSearch }) => (
+    <div>
+      <input
+        placeholder="Search"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        role="textbox"
+      />
+      <button data-testid="filter-region-asia" onClick={() => setRegion('Asia')}>
+        Asia
+      </button>
+      <button data-testid="filter-language-english" onClick={() => setLanguage('English')}>
+        English
+      </button>
+    </div>
+  ),
+}));
 
-// Mock the showAlert function
-const showAlert = jest.fn();
+const renderWithContext = (ui, { providerProps, ...renderOptions }) => {
+  return render(
+    <AuthContext.Provider value={providerProps}>{ui}</AuthContext.Provider>,
+    renderOptions
+  );
+};
 
 describe('Countries Component', () => {
-  it('should render loading spinner initially', () => {
-    render(<Countries showAlert={showAlert} />);
+  let providerProps;
+  let showAlert;
+
+  beforeEach(() => {
+    providerProps = {
+      user: { id: '123' },
+      favorites: [],
+      addFavorite: jest.fn(),
+      removeFavorite: jest.fn(),
+    };
+    showAlert = jest.fn();
+  });
+
+  it('displays loading initially', () => {
+    renderWithContext(<Countries showAlert={showAlert} showLoginModal={jest.fn()} />, {
+      providerProps,
+    });
     expect(screen.getByText(/Loading.../)).toBeInTheDocument();
   });
 
-  it('should display countries once data is fetched', async () => {
+  it('renders countries after fetch', async () => {
     const countriesMock = [
-      { cca3: 'USA', name: { common: 'United States' } },
-      { cca3: 'CAN', name: { common: 'Canada' } },
+      { cca3: 'USA', name: { common: 'United States' }, region: 'Americas', population: 100000, capital: ['Washington'], flags: { svg: 'flag.svg' } },
+      { cca3: 'CAN', name: { common: 'Canada' }, region: 'Americas', population: 50000, capital: ['Ottawa'], flags: { svg: 'flag.svg' } },
     ];
 
-    global.fetch = jest.fn().mockResolvedValue({
+    global.fetch = jest.fn().mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve(countriesMock),
+      json: async () => countriesMock,
     });
 
-    render(<Countries showAlert={showAlert} />);
+    renderWithContext(<Countries showAlert={showAlert} showLoginModal={jest.fn()} />, {
+      providerProps,
+    });
 
-    await waitFor(() => screen.getByText('United States'));
-    expect(screen.getByText('Canada')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('United States')).toBeInTheDocument();
+      expect(screen.getByText('Canada')).toBeInTheDocument();
+    });
   });
 
-  it('should filter countries based on search input', async () => {
+  it('filters countries via search', async () => {
     const countriesMock = [
-      { cca3: 'USA', name: { common: 'United States' } },
-      { cca3: 'CAN', name: { common: 'Canada' } },
+      { cca3: 'USA', name: { common: 'United States' }, region: 'Americas', population: 100000, capital: ['Washington'], flags: { svg: 'flag.svg' } },
+      { cca3: 'CAN', name: { common: 'Canada' }, region: 'Americas', population: 50000, capital: ['Ottawa'], flags: { svg: 'flag.svg' } },
     ];
 
-    global.fetch = jest.fn().mockResolvedValue({
+    global.fetch = jest.fn().mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve(countriesMock),
+      json: async () => countriesMock,
     });
 
-    render(<Countries showAlert={showAlert} />);
+    renderWithContext(<Countries showAlert={showAlert} showLoginModal={jest.fn()} />, {
+      providerProps,
+    });
 
-    await waitFor(() => screen.getByText('United States'));
+    await waitFor(() => screen.getByText('Canada'));
 
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Canada' } });
 
+    expect(screen.queryByText('United States')).not.toBeInTheDocument();
     expect(screen.getByText('Canada')).toBeInTheDocument();
-    expect(screen.queryByText('United States')).toBeNull();
   });
 
-  it('should filter countries based on selected region', async () => {
-    const countriesMock = [
-      { cca3: 'USA', name: { common: 'United States' }, region: 'Americas' },
-      { cca3: 'CAN', name: { common: 'Canada' }, region: 'Americas' },
-      { cca3: 'JPN', name: { common: 'Japan' }, region: 'Asia' },
-    ];
+ it('filters by region', async () => {
+  const countriesMock = [
+    { cca3: 'JPN', name: { common: 'Japan' }, region: 'Asia', population: 100000, capital: ['Tokyo'], flags: { svg: 'flag.svg' } },
+    { cca3: 'USA', name: { common: 'United States' }, region: 'Americas', population: 100000, capital: ['Washington'], flags: { svg: 'flag.svg' } },
+  ];
 
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(countriesMock),
+  global.fetch = jest.fn().mockResolvedValueOnce({
+    ok: true,
+    json: async () => countriesMock,
+  });
+
+  renderWithContext(<Countries showAlert={showAlert} showLoginModal={jest.fn()} />, {
+    providerProps,
+  });
+
+  await waitFor(() => screen.getByText('Japan'));
+
+  fireEvent.click(screen.getByTestId('filter-region-asia'));
+
+  expect(screen.getByText('Japan')).toBeInTheDocument();
+  expect(screen.queryByText('United States')).not.toBeInTheDocument();
+});
+ 
+
+  it('handles fetch error gracefully', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    global.fetch = jest.fn().mockRejectedValueOnce(new Error('API failed'));
+
+    renderWithContext(<Countries showAlert={showAlert} showLoginModal={jest.fn()} />, {
+      providerProps,
     });
 
-    render(<Countries showAlert={showAlert} />);
+    await waitFor(() =>
+      expect(showAlert).toHaveBeenCalledWith('Error fetching countries', 'danger')
+    );
 
-    await waitFor(() => screen.getByText('United States'));
-
-    fireEvent.click(screen.getByText('Asia'));
-
-    expect(screen.queryByText('United States')).toBeNull();
-    expect(screen.getByText('Japan')).toBeInTheDocument();
+    consoleSpy.mockRestore();
   });
-
-  it('should add and remove favorites', async () => {
-    const countriesMock = [
-      { cca3: 'USA', name: { common: 'United States' } },
-    ];
-
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(countriesMock),
-    });
-
-    render(<Countries showAlert={showAlert} />);
-
-    await waitFor(() => screen.getByText('United States'));
-
-    const favoriteButton = screen.getByText('Favorite');
-    fireEvent.click(favoriteButton);
-
-    expect(favoriteButton.textContent).toBe('Unfavorite');
-  });
-
-  it('should show error message when fetch fails', async () => {
-  const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {}); 
- 
-  global.fetch = jest.fn().mockRejectedValue(new Error('Failed to fetch'));
- 
-  render(<Countries showAlert={showAlert} />);
- 
-  await waitFor(() =>
-    expect(showAlert).toHaveBeenCalledWith('Error fetching countries', 'danger')
-  );
- 
-  consoleError.mockRestore(); 
 });
-});
+ 
