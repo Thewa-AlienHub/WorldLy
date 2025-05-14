@@ -10,7 +10,6 @@ const CountryDetail = ({ showAlert }) => {
   const [loading, setLoading] = useState(true);
 
   // Color scheme from the welcome page
-  //Changes ara
   const colors = {
     darkTeal: "#053742",
     blue: "#39A2DB",
@@ -63,8 +62,7 @@ const CountryDetail = ({ showAlert }) => {
         </h2>
         <Link
           to="/home"
-          className="flex items-center justify-center"
-          style={{ color: colors.blue }}
+          className="flex items-center justify-center font-semibold text-[#147eb7] hover:text-[#0f5a8c]"
         >
           <ArrowLeft className="mr-2" /> Back to Countries
         </Link>
@@ -105,8 +103,7 @@ const CountryDetail = ({ showAlert }) => {
         <div className="mb-6">
           <Link
             to="/home"
-            className="inline-flex items-center transition font-semibold"
-            style={{ color: colors.blue }}
+            className="inline-flex items-center transition font-semibold text-[#147eb7] hover:text-[#0f5a8c]"
           >
             <ArrowLeft className="mr-2" /> Back to Countries
           </Link>
