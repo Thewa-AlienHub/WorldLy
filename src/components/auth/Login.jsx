@@ -3,8 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import OAuth from "./OAuth";
+import { useAuth } from "../../hooks/useAuth";
 
-const Login = ({ login, showAlert }) => {
+const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -12,7 +13,7 @@ const Login = ({ login, showAlert }) => {
   });
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
-
+  const { login } = useAuth();
   const { email, password } = formData;
   const navigate = useNavigate();
 
@@ -37,6 +38,7 @@ const Login = ({ login, showAlert }) => {
       if (userCredential.user) {
         navigate("/");
       }
+      login(email, password);
     } catch (error) {
       setErrorMsg("Invalid User Credentials");
     } finally {

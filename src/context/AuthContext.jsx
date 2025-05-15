@@ -14,7 +14,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
-        setUser(firebaseUser);
+        // setUser(firebaseUser);
+        setUser({
+          uid: firebaseUser.uid,
+          displayName: firebaseUser.displayName,
+          email: firebaseUser.email,
+          favorites: [],
+        });
       } else {
         setUser(null);
         setFavorites([]);
@@ -24,6 +30,14 @@ export const AuthProvider = ({ children }) => {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    }else {
+      localStorage.removeItem("user");
+    }
+  }, [user]);
 
   const login = async () => {
     try {
